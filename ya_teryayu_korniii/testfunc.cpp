@@ -126,7 +126,7 @@ void print_struct(TestCase references)
 }
 
 
-//NOTE -
+//NOTE - get git a
  void get_stract(TestCase* ref)
 {
     double a = 0.0, b = 0.0, c = 0.0, x1Ref = 0.0, x2Ref = 0.0;
