@@ -4,10 +4,7 @@
 const char* name_file = "references.txt";
 FILE* fp = fopen(name_file, "r");
 
-
-
-
-//MENTOR -пернсти объявление функции getanswer
+//MENTOR нужно ли перенести объявление функции getanswer
 int getanswer(double a, double b, double c, double* x1, double* x2);
 
 
@@ -126,7 +123,7 @@ void print_struct(TestCase references)
 }
 
 
-//NOTE - get git a
+//NOTE made reading from file
  void get_stract(TestCase* ref)
 {
     double a = 0.0, b = 0.0, c = 0.0, x1Ref = 0.0, x2Ref = 0.0;
