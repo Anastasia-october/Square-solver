@@ -25,18 +25,15 @@ assert(fp != NULL && Error File name did not open)
 Функция feof(FILE *) аналогична функции ferror; она возвращает ненулевое значение, если встретился
 конец указанного в аргументе файла.
 
-/*struct TestCase references[] = {{.a = 0.0, .b = 0.0, .c = 0.0, .nRootsRef = 3, .x1Ref = NAN, .x2Ref = NAN},
+struct TestCase references[] = {{.a = 0.0, .b = 0.0, .c = 0.0, .nRootsRef = 3, .x1Ref = NAN, .x2Ref = NAN},
     {.a = 0.0, .b = 0.0, .c = 5.0, .nRootsRef = 0, .x1Ref = NAN, .x2Ref = NAN},
     {.a = 0.0, .b = 7.0, .c = 0.0, .nRootsRef = 1, .x1Ref = 0.0, .x2Ref = 0.0},
     {.a = 4.0, .b = 0.0, .c = 0.0, .nRootsRef = 1, .x1Ref = 0.0, .x2Ref = 0.0},
     {.a = 3.0, .b = 0.0, .c = -3.0, .nRootsRef = 2, .x1Ref = 1.0, .x2Ref = -1.0},
     {.a = 1.0, .b = 2.0, .c = 1.0, .nRootsRef = 1, .x1Ref = -1.0, .x2Ref = -1.0},
     {.a = 1.0, .b = 4.0, .c = 3.0, .nRootsRef = 2, .x1Ref = -1.0, .x2Ref = -3.0},
-    {.a = 0.0, .b = 2.0, .c = 8.0, .nRootsRef = 1, .x1Ref = -4.0, .x2Ref = -4.0}};*/
-
+    {.a = 0.0, .b = 2.0, .c = 8.0, .nRootsRef = 1, .x1Ref = -4.0, .x2Ref = -4.0}};
 
 Чтобы обратиться к переменной х, находящейся в структуре pt1, вложенной в структуру screen, screen.pt1.x
 
 struct key *binsearch(char *word, struct key *tab, int n) - функция, возвращающая указатель на структуру
-
-fffffffffffffffffff

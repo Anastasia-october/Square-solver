@@ -4,12 +4,11 @@
 const char* name_file = "references.txt";
 FILE* fp = fopen(name_file, "r");
 
-//MENTOR нужно ли перенести объявление функции getanswer
-int getanswer(double a, double b, double c, double* x1, double* x2);
-
-
 #define ITERATIONS 8
 #define EPSILON4 0.00001
+#define RED "\033[4;31m"
+#define GREEN "\033[4;32m"
+#define RESET "\033[0;0m"
 
 
 struct TestCase
@@ -42,7 +41,8 @@ int RunTests(int number_of_tests);
 int not_same(double got, double ref);
 int same(double got, double ref);
 void print_struct(TestCase references);
-void get_stract(TestCase* ref);
+void get_stract(TestCase* references, int number_of_tests);
+int getanswer(double a, double b, double c, double* x1, double* x2);
 
 
 
@@ -55,7 +55,7 @@ int OneTest(TestCase references, int i)
         printf("Error%d: root x1 didnt change from nan\n\n", i);
         return 0;
     }
-    else if(isnan(x2) && isnan(references.x2Ref) == 0){
+    else if (isnan(x2) && isnan(references.x2Ref) == 0){
         printf("Error%d: root x2 didnt change from nan\n\n", i);
         return 0;
     }
@@ -79,20 +79,21 @@ int OneTest(TestCase references, int i)
 int RunTests(int number_of_tests)
 {
     int right_tests = 0, i = 0;
-    TestCase references = {};
-    TestCase* ref = &references;
 
-    get_stract(ref);
-
+    /*TestCase* ref = references;*/
     if (number_of_tests >= ITERATIONS)
         number_of_tests = ITERATIONS;
 
+    TestCase references[ITERATIONS] = {};
+
+    get_stract(references, number_of_tests);
+
     for (i = 0; i < number_of_tests; i ++){
-        /*pprintf("\n\n\nIteration %d\n", i);
+        /*printf("\n\n\nIteration %d\n", i);
         rintf("Struct To OneTest ");
         print_struct(references[i]);*/
 
-        int test = OneTest(references, i);
+        int test = OneTest(references[i], i);
         right_tests += test;
     }
     return right_tests;
@@ -119,17 +120,18 @@ int same(double got, double ref)
 
 void print_struct(TestCase references)
 {
-    printf("a = %lg b = %lg c = %lg nRootsRef = %d x1Ref = %lg x2Ref = %lg\n", references.a, references.b, references.c, references.nRootsRef, references.x1Ref, references.x2Ref);
+    printf("a = %lg b = %lg c = %lg nRootsRef = %d x1Ref = %lg x2Ref = %lg\n",
+            references.a, references.b, references.c, references.nRootsRef,
+            references.x1Ref, references.x2Ref);
 }
 
 
-//NOTE made reading from file
- void get_stract(TestCase* ref)
+
+ void get_stract(TestCase* references, int number_of_tests)
 {
-    double a = 0.0, b = 0.0, c = 0.0, x1Ref = 0.0, x2Ref = 0.0;
-    int nRootsRef = 0;
-
-    fscanf(fp, "%lg %lg %lg %d %lg %lg", &a, &b, &c, &nRootsRef, &x1Ref, &x2Ref);
-    *ref = {a, b, c, nRootsRef, x1Ref, x2Ref};
+    for (int j = 0; j < number_of_tests; j++){
+        fscanf(fp, "%lg %lg %lg %d %lg %lg",
+                &references[j].a, &references[j].b, &references[j].c, &references[j].nRootsRef,
+                &references[j].x1Ref, &references[j].x2Ref);
+    }
 }
-//git commit

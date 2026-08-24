@@ -13,7 +13,7 @@ enum rootsflags {
     INFINITEROOTS = 3};
 
 #define ANSWERSIZE 6
-#define EPSIL 0.0000000001 /*маленькое число для сравнений*/
+#define EPSIL 0.0000000001 /*????????? ????? ??? ?????????*/
 #define RIGHTANS "yes"
 #define WRONGANS "no"
 #define RED "\033[4;31m"
@@ -69,7 +69,7 @@ int greet()
     char greetanswer[ANSWERSIZE] = "";
     scanf("%s", greetanswer);
 
-    /*printf("%s\n", greetanswer);*/ //FIXME -задваивание при неверных абс
+    /*printf("%s\n", greetanswer);*/ //FIXME -??????????? ??? ???????? ???
 
     char answer_agree[ANSWERSIZE] = RIGHTANS;
     char answer_disagree[ANSWERSIZE] = WRONGANS;
@@ -106,7 +106,7 @@ int rightscan(double* a, double* b, double* c)
             printf("ERROR: You wrote letter\n");
         }
         else{
-            printf("ERROR: wtf !!?№!;!№!\n");
+            printf("ERROR: wtf !!?!;!!\n");
         }
         return 0;
     }
