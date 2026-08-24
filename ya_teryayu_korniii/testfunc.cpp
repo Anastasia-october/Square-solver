@@ -132,3 +132,4 @@ void print_struct(TestCase references)
     fscanf(fp, "%lg %lg %lg %d %lg %lg", &a, &b, &c, &nRootsRef, &x1Ref, &x2Ref);
     *ref = {a, b, c, nRootsRef, x1Ref, x2Ref};
 }
+//git commit
