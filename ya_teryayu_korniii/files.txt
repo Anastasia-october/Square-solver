@@ -38,3 +38,5 @@ assert(fp != NULL && Error File name did not open)
 Чтобы обратиться к переменной х, находящейся в структуре pt1, вложенной в структуру screen, screen.pt1.x
 
 struct key *binsearch(char *word, struct key *tab, int n) - функция, возвращающая указатель на структуру
+
+fffffffffffffffffff
