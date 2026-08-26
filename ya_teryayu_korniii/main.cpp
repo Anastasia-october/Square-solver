@@ -1,238 +1,185 @@
-#include <stdio.h>
-#include  <math.h>
 #include <string.h>
 #include <assert.h>
+#include <ctype.h>
+#include "plot.h"
+#include "testfunc.h"
+#include "main.h"
 
-//MENTOR - ERRORCONST = -1
+int solve_linear_eq(double b, double c, double* x1, double* x2);
+int solve_square_eq(double a, double b, double c, double* x1, double* x2);
+int read_coeffs(double* a, double* b, double* c);
+int greet_user();
+int get_sign(double number);
+void print_solutions(int count_ans, double* x1, double* x2, int* font, int* color);
+void get_color(int* font, int* color);
 
-enum rootsflags {
-    ERRORCONST = 8,
-    ZEROROOTS = 0,
-    ONEROOT = 1,
-    TWOROOTS = 2,
-    INFINITEROOTS = 3};
+int main() {
+    double a = NAN, b = NAN, c = NAN;
+    int font = 0, color = 0;
 
-#define ANSWERSIZE 6
-#define EPSIL 0.0000000001 /*????????? ????? ??? ?????????*/
-#define RIGHTANS "yes"
-#define WRONGANS "no"
-#define RED "\033[4;31m"
-#define GREEN "\033[4;32m"
-#define RESET "\033[0;0m"
-#define TOCHNOST 4 // Accuracy
-#define ITERATIONS 8
-
-int getanswer(double a, double b, double c, double* x1, double* x2);
-int korni_1(double k, double c, double* x1, double* x2);
-int korni_2(double a, double b, double c, double* x1, double* x2);
-int rightscan(double* a, double* b, double* c); //IsInputCorrect or IsInputValid
-void outp(int count_ans, double* x1, double* x2);
-void description(void);
-int greet();
-int comparison(double L);
-void color(int* q, int* w);
-int number_of_tests(int* number_of_t);
-int RunTests(int number_of_tests);
+    while (greet_user()) {
 
 
-int main()
-{
-    int iter = greet();
-    while (iter){
-        description();
-
-        double a = 0.0, b = 0.0, c = 0.0;
-        printf("a = %lg, b = %lg, c = %lg\n", a, b, c);
-
-        if (rightscan(&a, &b, &c)){
+        if (read_coeffs(&a, &b, &c)) {
             double x1 = NAN, x2 = NAN;
-            int count_ans = ERRORCONST;
+            int count_ans = ERROR_CONST;
 
-            count_ans = getanswer(a, b, c, &x1, &x2);
-            outp(count_ans, &x1, &x2);
+            count_ans = solve_equation(a, b, c, &x1, &x2);
+
+            print_solutions(count_ans, &x1, &x2, &font, &color);
+            draw_function(a, b, c, color);
         }
-        iter = greet();
     }
-    int number_of_t = 0;
-    number_of_tests(&number_of_t);
+    int run_all_tests(void);
+    printf("Right tests: %d\n", run_all_tests());
 
-    printf("Right tests: %d\n", RunTests(number_of_t));
     return 0;
 }
 
-
-
-int greet()
-{
+int greet_user() {
     printf("Hello, world! Do you want to solve a quadratic equation?(yes/no)\n");
 
-    char greetanswer[ANSWERSIZE] = "";
-    scanf("%s", greetanswer);
+    const int ANSWER_SIZE_CONST = 6;
+    char greetanswer[ANSWER_SIZE_CONST] = "";
+    const char* RIGHT_ANSWER_CONST = "yes";
+    const char* WRONG_ANSWER_CONST = "no";
 
-    /*printf("%s\n", greetanswer);*/ //FIXME -??????????? ??? ???????? ???
+    scanf("%5s", greetanswer);  // NOTE: '5' is `ANSWER_SIZE_CONST`-1
 
-    char answer_agree[ANSWERSIZE] = RIGHTANS;
-    char answer_disagree[ANSWERSIZE] = WRONGANS;
-
-    if (strcmp(answer_agree, greetanswer) == 0){
+    if (strcmp(RIGHT_ANSWER_CONST, greetanswer) == 0)
         return 1;
-    }
-    else if (strcmp(answer_disagree, greetanswer) == 0){
-            return 0;
-    }
-    else{
+    else if (strcmp(WRONG_ANSWER_CONST, greetanswer) == 0)
+        return 0;
+    else {
         printf("Wrong input, try again\n");
-        return greet();
+        return greet_user();
     }
+
     return 0;
 }
 
+int read_coeffs(double* a, double* b, double* c) {
+    assert(a != NULL && "ERROR: wrong a");
+    assert(b != NULL && "ERROR: wrong b");
+    assert(c != NULL && "ERROR: wrong c");
 
-
-void description(void)
-{
     printf("Enter the coefficients of the quadratic equation.\n");
     printf("ax^2+bx+c=0\n");
-}
 
-
-
-int rightscan(double* a, double* b, double* c)
-{
     scanf("%lf %lf %lf", a, b, c);
     char buf = 0;
-    if ((buf = (char) getchar()) != '\n'){
-        if ((buf >= 'A' && buf <= 'Z') || (buf >= 'a' && buf <= 'z')){
+
+    if ((buf = (char) getchar()) != '\n') {
+        if (isalpha(buf))
             printf("ERROR: You wrote letter\n");
-        }
-        else{
+        else
             printf("ERROR: wtf !!?!;!!\n");
-        }
         return 0;
     }
+
     return 1;
 }
 
-
-
-int getanswer(double a, double b, double c, double* x1, double* x2)
-{
-    if (comparison(a) == 0){
-        if (comparison(b) == 0){
-            if (comparison(c) == 0){
-                return INFINITEROOTS;
-            }
-            else{
-                return ZEROROOTS;
-            }
+int solve_equation(double a, double b, double c, double* x1, double* x2) {
+    assert(x2 != NULL && "ERROR: wrong x2");
+    assert(x1 != NULL && "ERROR: wrong x1");
+    if (get_sign(a) == 0) {
+        if (get_sign(b) == 0) {
+            if (get_sign(c) == 0)
+                return INFINITY_ROOTS;
+            else
+                return ZERO_ROOTS;
         }
-        else{
-            return korni_1(b, c, x1, x2);
-        }
+        else
+            return solve_linear_eq(b, c, x1, x2);
     }
-    else{
-        return korni_2(a,  b,  c,  x1,  x2);
-    }
+    else
+        return solve_square_eq(a, b, c, x1, x2);
 }
 
+int solve_linear_eq(double b, double c, double* x1, double* x2) {
+    assert(x2 != NULL && "ERROR: wrong x2");
+    assert(x1 != NULL && "ERROR: wrong x1");
+    assert(get_sign(b) != 0);
 
+    *x1 = *x2 = (-c)/b;
 
-int korni_1(double k, double c, double* x1, double* x2)
-{
-    *x1 = *x2 = (-c)/k;
-    return ONEROOT;
+    return ONE_ROOT;
 }
 
+int solve_square_eq(double a, double b, double c, double* x1, double* x2) {
+    assert(x2 != NULL && "ERROR: wrong x2");
+    assert(x1 != NULL && "ERROR: wrong x1");
+    assert(get_sign(a) != 0);
 
+    double d = b*b - 4*a*c;
 
-int korni_2(double a, double b, double c, double* x1, double* x2)
-{
-    double d = 0.0;
-    d = b*b - 4*a*c;
-
-    if (comparison(d) == -1){
-        /*printf("ERROR: D < 0\n");*/
-        return ZEROROOTS;
-    }
-    else if (comparison(d) == 0){
+    if (get_sign(d) == -1)
+        return ZERO_ROOTS;
+    else if (get_sign(d) == 0) {
         *x1 = *x2 = (-b) / (2 * a);
-        return ONEROOT;
+        return ONE_ROOT;
     }
-    else{
+    else {
         *x1 = ((-b) + sqrt(d)) / (2 * a);
         *x2 = ((-b) - sqrt(d)) / (2 * a);
-        return TWOROOTS;
+        return TWO_ROOT;
     }
-    return ERRORCONST;
+
+    return ERROR_CONST;
 }
 
+void print_solutions(int count_ans, double* x1, double* x2, int* font, int* color) {
+    assert(x2 != NULL && "ERROR: wrong x2");
+    assert(x1 != NULL && "ERROR: wrong x1");
 
-
-void outp(int count_ans, double* x1, double* x2)
-{
-    int q = 0, w = 0;
-    color(&q, &w);
+    get_color(font, color);
     switch (count_ans){
     case 1:
         printf("One root\n");
-        printf("\033[%d;3%dm " "%4.f \033[0m \n", q, w, *x1);
+        printf("\033[%d;3%dm" "%4.f  \033[0m\n", *font, *color, *x1);
         break;
     case 2:
         printf("Two roots\n");
-        printf("\033[%d;3%dm %4.2f, %6.2f \n \033[0m ",q, w, *x1, *x2);
+        printf("\033[%d;3%dm %4.2f, %6.2f \033[0m\n", *font, *color, *x1, *x2);
         break;
     case 0:
-        printf("\033[%d;3%dm No roots \n \033[0m", q, w);
+        printf("\033[%d;3%dm No roots \033[0m\n", *font, *color);
         break;
     case 3:
-        printf("\033[%d;3%dm ERROR: an infinite number of roots \n \033[0m", q, w);
+        printf("\033[%d;3%dm ERROR: an infinite number of roots \033[0\n", *font, *color);
         break;
     default:
-        printf("\033[%d;3%dm ERROR: roots didnt read \n \033[0m", q, w);
+        printf("\033[%d;3%dm ERROR: roots didnt read \033[0m\n", *font, *color);
         break;
     }
-
 }
 
+int get_sign(double number) {
+    const double EPSILON_4_CONST = 0.00001; // TODO: 1e-5
 
-
-int comparison(double L)
-{
-    if (-EPSIL < L && L < EPSIL){
+    if (-EPSILON_4_CONST < number && number < EPSILON_4_CONST)
         return 0;
-    }
-    else if (L < -EPSIL){
+    else if (number < -EPSILON_4_CONST)
         return -1;
-    }
-    else if (L > EPSIL){
+    else if (number > EPSILON_4_CONST)
         return 1;
-    }
-    else{
-        printf("Wrong comparison, take lower const\n");
+    else {
+        printf("Wrong get_sign, take lower const\n");
         return 0;
     }
 }
 
+void get_color(int* font, int* color) {
+    assert(font != NULL && "ERROR: wrong font");
+    assert(color != NULL && "ERROR: wrong color");
 
-
-void color(int* q, int* w)
-{
     printf("What is your favourite font(shrift)?\n");
     printf("0 - reset\n1 - bold text\n4 - emphasized(podch))\n7 - invers\n");
-    scanf("%d", q);
+    scanf("%d", font);
 
-    printf("What is your favourite color?\n");
-    printf("0 - black\t1 - red\t2 - green\n3 - yellow\t4 - blue\t5 - purple\n6 - light blue\t7 - white.\n");
+    printf("What is your favourite get_color?\n");
+    printf("0 - black\t1 - red \t2 - green\n3 - yellow\t4 - blue\t5 - purple\n6 - light blue\t7 - white.\n");
 
-    scanf("%d", w);
-}
-
-
-
-int number_of_tests(int* number_of_t)
-{
-    printf("How much tests do you want to do?\n");
-    printf("Max tests - %d\n", ITERATIONS);
-    scanf("%d", number_of_t);
-    return 0;
+    scanf("%d", color);
 }

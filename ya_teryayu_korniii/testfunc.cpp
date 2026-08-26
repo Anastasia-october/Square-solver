@@ -1,135 +1,85 @@
-#include <stdio.h>
-#include <math.h>
+#include "testfunc.h"
+#include "main.h"
 
-const char* name_file = "references.txt";
-FILE* fp = fopen(name_file, "r");
+int run_one_test(TestCase references, int i);
+bool is_equal(double got, double ref);
+int is_not_equal(double got, double ref);
+void print_TestCase_struct(TestCase references);
+void read_tests(TestCase* references);
 
-#define ITERATIONS 8
-#define EPSILON4 0.00001
-#define RED "\033[4;31m"
-#define GREEN "\033[4;32m"
-#define RESET "\033[0;0m"
+int run_one_test(TestCase references, int i) {
+    double x1 = NAN; //NOTE - remove when it started to work
+    double x2 = NAN;
+    int nRoots = solve_equation(references.a, references.b, references.c, &x1, &x2);
 
-
-struct TestCase
-{
-    double a, b, c;
-    int nRootsRef;
-    double x1Ref, x2Ref;
-};
-
-
-const char* ErrorOrder = R"(
-Error test№ %d: wrong order of roots
-expected: roots %d   x1 = %lg   x2 = %lg
-got:      roots %d   x1 = %lg   x2 = %lg
-)";
-const char* ErrorNumberRoots = R"(
-Error test№ %d: wrong number of roots
-expected: roots %d
-got:      roots %d
-)";
-const char* WrongRooots = R"(
-Error test№ %d: wrong roots
-expected: roots %d   x1 = %lg   x2 = %lg
-got:      roots %d   x1 = %lg   x2 = %lg
-)";
-
-
-int OneTest(TestCase references, int i);
-int RunTests(int number_of_tests);
-int not_same(double got, double ref);
-int same(double got, double ref);
-void print_struct(TestCase references);
-void get_stract(TestCase* references, int number_of_tests);
-int getanswer(double a, double b, double c, double* x1, double* x2);
-
-
-
-int OneTest(TestCase references, int i)
-{
-    double x1 = NAN, x2 = NAN;
-    int nRoots = getanswer(references.a, references.b, references.c, &x1, &x2);
-
-    if (isnan(x1) && isnan(references.x1Ref) == 0){
+    if (isnan(x1) && (isnan(references.x1Ref) == 0)){
         printf("Error%d: root x1 didnt change from nan\n\n", i);
         return 0;
     }
-    else if (isnan(x2) && isnan(references.x2Ref) == 0){
+    else if (isnan(x2) && (isnan(references.x2Ref) == 0)){
         printf("Error%d: root x2 didnt change from nan\n\n", i);
         return 0;
     }
-    else if (not_same(nRoots, references.nRootsRef)){
-        printf(ErrorNumberRoots, i, references.nRootsRef, nRoots);
+    else if (is_not_equal(nRoots, references.nRootsRef)){
+        printf("Error test№ %d: wrong number of roots\n"
+            "expected: roots %d\n"
+            "got:      roots %d\n",
+            i, references.nRootsRef, nRoots);
         return 0;
     }
-    else if (same(x1, references.x2Ref) && same(x2, references.x1Ref) && not_same(x1, x2)){
-        printf(ErrorOrder, i, references.nRootsRef, references.x1Ref, references.x2Ref, nRoots, x1, x2);
+    else if (is_equal(x1, references.x2Ref) && is_equal(x2, references.x1Ref) && is_not_equal(x1, x2)){
+        printf("Error test№ %d: wrong order of roots\n"
+            "expected: roots %d   x1 = %lg   x2 = %lg\n"
+            "got:      roots %d   x1 = %lg   x2 = %lg\n",
+            i, references.nRootsRef, references.x1Ref, references.x2Ref, nRoots, x1, x2);
         return 0;
     }
-    else if ((not_same(x1, references.x1Ref) || not_same(x2, references.x2Ref)) && isnan(references.x1Ref) == 0 && isnan(references.x2Ref) == 0){
-        printf(WrongRooots, i, references.nRootsRef, references.x1Ref, references.x2Ref, nRoots, x1, x2);
+    else if ((is_not_equal(x1, references.x1Ref) || is_not_equal(x2, references.x2Ref)) && isnan(references.x1Ref) == 0 && isnan(references.x2Ref) == 0){
+        printf("(Error test№ %d: wrong roots\n"
+            "expected: roots %d   x1 = %lg   x2 = %lg\n"
+            "got:      roots %d   x1 = %lg   x2 = %lg\n",
+            i, references.nRootsRef, references.x1Ref, references.x2Ref, nRoots, x1, x2);
         return 0;
     }
+
     return 1;
 }
 
-
-
-int RunTests(int number_of_tests)
-{
+int run_all_tests(void) {
     int right_tests = 0, i = 0;
-
-    /*TestCase* ref = references;*/
-    if (number_of_tests >= ITERATIONS)
-        number_of_tests = ITERATIONS;
 
     TestCase references[ITERATIONS] = {};
 
-    get_stract(references, number_of_tests);
+    read_tests(references);
 
-    for (i = 0; i < number_of_tests; i ++){
-        /*printf("\n\n\nIteration %d\n", i);
-        rintf("Struct To OneTest ");
-        print_struct(references[i]);*/
-
-        int test = OneTest(references[i], i);
+    for (i = 0; i < ITERATIONS; i ++){
+        int test = run_one_test(references[i], i);
         right_tests += test;
     }
+
     return right_tests;
 }
 
-
-
-int not_same(double got, double ref)
-{
-    if (fabs(got - ref) < EPSILON4)
-        return 0;
-    else
-        return 1;
+bool is_equal(double got, double ref) {
+    const double EPSILON_4_CONST = 0.0001;
+    return fabs(got - ref) < EPSILON_4_CONST;
 }
 
-
-
-int same(double got, double ref)
-{
-    return fabs(got - ref) < EPSILON4;
+int is_not_equal(double got, double ref) {
+    return !is_equal(got, ref);
 }
 
-
-
-void print_struct(TestCase references)
-{
+void print_TestCase_struct(TestCase references) {
     printf("a = %lg b = %lg c = %lg nRootsRef = %d x1Ref = %lg x2Ref = %lg\n",
             references.a, references.b, references.c, references.nRootsRef,
             references.x1Ref, references.x2Ref);
 }
 
+ void read_tests(TestCase* references) {
+    const char* NAME_FILE_CONST_CONST = "references.txt";
+    FILE* fp = fopen(NAME_FILE_CONST_CONST, "r");
 
-
- void get_stract(TestCase* references, int number_of_tests)
-{
-    for (int j = 0; j < number_of_tests; j++){
+    for (int j = 0; j < ITERATIONS; j++){
         fscanf(fp, "%lg %lg %lg %d %lg %lg",
                 &references[j].a, &references[j].b, &references[j].c, &references[j].nRootsRef,
                 &references[j].x1Ref, &references[j].x2Ref);
