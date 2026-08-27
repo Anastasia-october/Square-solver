@@ -1,16 +1,16 @@
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
-#include "plot.h"
-#include "testfunc.h"
 #include "main.h"
+#include "testfunc.h"
+#include "plot.h"
 
 int solve_linear_eq(double b, double c, double* x1, double* x2);
 int solve_square_eq(double a, double b, double c, double* x1, double* x2);
 int read_coeffs(double* a, double* b, double* c);
 int greet_user();
 int get_sign(double number);
-void print_solutions(int count_ans, double* x1, double* x2, int* font, int* color);
+void print_solutions(int count_ans, double* x1, double* x2, int font, int color);
 void get_color(int* font, int* color);
 
 int main() {
@@ -19,17 +19,18 @@ int main() {
 
     while (greet_user()) {
 
-
         if (read_coeffs(&a, &b, &c)) {
             double x1 = NAN, x2 = NAN;
             int count_ans = ERROR_CONST;
 
             count_ans = solve_equation(a, b, c, &x1, &x2);
 
-            print_solutions(count_ans, &x1, &x2, &font, &color);
+            get_color(&font, &color);
+            print_solutions(count_ans, &x1, &x2, font, color);
             draw_function(a, b, c, color);
         }
     }
+    printf("Testing process...\n");
     int run_all_tests(void);
     printf("Right tests: %d\n", run_all_tests());
 
@@ -48,14 +49,11 @@ int greet_user() {
 
     if (strcmp(RIGHT_ANSWER_CONST, greetanswer) == 0)
         return 1;
-    else if (strcmp(WRONG_ANSWER_CONST, greetanswer) == 0)
+    if (strcmp(WRONG_ANSWER_CONST, greetanswer) == 0)
         return 0;
-    else {
-        printf("Wrong input, try again\n");
-        return greet_user();
-    }
 
-    return 0;
+    printf("Wrong input, try again\n");
+    return greet_user();
 }
 
 int read_coeffs(double* a, double* b, double* c) {
@@ -129,28 +127,27 @@ int solve_square_eq(double a, double b, double c, double* x1, double* x2) {
     return ERROR_CONST;
 }
 
-void print_solutions(int count_ans, double* x1, double* x2, int* font, int* color) {
+void print_solutions(int count_ans, double* x1, double* x2, int font, int color) {
     assert(x2 != NULL && "ERROR: wrong x2");
     assert(x1 != NULL && "ERROR: wrong x1");
 
-    get_color(font, color);
     switch (count_ans){
     case 1:
         printf("One root\n");
-        printf("\033[%d;3%dm" "%4.f  \033[0m\n", *font, *color, *x1);
+        printf("\033[%d;3%dm" "%lg" "\033[0m" "\n", font, color, *x1); //NOTE цветной вывод
         break;
     case 2:
         printf("Two roots\n");
-        printf("\033[%d;3%dm %4.2f, %6.2f \033[0m\n", *font, *color, *x1, *x2);
+        printf("\033[%d;3%dm" "%lg, %lg" "\033[0m" "\n", font, color, *x1, *x2); //NOTE цветной вывод
         break;
     case 0:
-        printf("\033[%d;3%dm No roots \033[0m\n", *font, *color);
+        printf("\033[%d;3%dm" "No roots" "\033[0m" "\n", font, color); //NOTE цветной вывод
         break;
     case 3:
-        printf("\033[%d;3%dm ERROR: an infinite number of roots \033[0\n", *font, *color);
+        printf("\033[%d;3%dm" "ERROR: an infinite number of roots" "\033[0" "\n", font, color); //NOTE цветной вывод
         break;
     default:
-        printf("\033[%d;3%dm ERROR: roots didnt read \033[0m\n", *font, *color);
+        printf("\033[%d;3%dm" "ERROR: roots didnt read" "\033[0m" "\n", font, color); //NOTE цветной вывод
         break;
     }
 }
@@ -178,7 +175,7 @@ void get_color(int* font, int* color) {
     printf("0 - reset\n1 - bold text\n4 - emphasized(podch))\n7 - invers\n");
     scanf("%d", font);
 
-    printf("What is your favourite get_color?\n");
+    printf("What is your favourite color?\n");
     printf("0 - black\t1 - red \t2 - green\n3 - yellow\t4 - blue\t5 - purple\n6 - light blue\t7 - white.\n");
 
     scanf("%d", color);

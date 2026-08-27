@@ -12,8 +12,7 @@ enum rootsflags {
 #define RED     "\033[4;31m"
 #define GREEN   "\033[4;32m"
 #define RESET   "\033[0;0m"
-#define TOCHNOST    4
-#define ITERATIONS  8
+#define ITERATIONS  9
 
 int solve_equation(double a, double b, double c, double* x1, double* x2);
 
