@@ -81,3 +81,8 @@ int is_increasing(int y, int column, double a, double b, double c)
 {
     return y < get_y(a, b, c, column+1);
 }
+
+
+ * *
+———————————————————————————————————+——————————————————————————————————
+                                |

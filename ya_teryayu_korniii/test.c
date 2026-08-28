@@ -1,7 +1,8 @@
 #include <stdio.h>
+#include <string.h>
 
 int main(void)
 {
-    printf("—\n");
-    return 0;
+    const char* str = "ref";
+    printf("%d\n", strcmp(str, "ref"));
 }

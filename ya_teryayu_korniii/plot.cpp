@@ -4,7 +4,8 @@ int calc_function(double a, double b, double c, int x);
 void print_symbol(int x, int y, int line, const int WIDTH_CONST, int* flag_drawn, int color);
 
 int calc_function(double a, double b, double c, int x) {
-    return round(a*x*x + b*x + c); //MENTOR warning смена типа (int)
+    return (int) lround(a*x*x + b*x + c);
+    return INT_MAX;
 }
 
 int draw_function(double a, double b, double c, int color) {
@@ -25,18 +26,20 @@ int draw_function(double a, double b, double c, int color) {
 }
 
 void print_symbol(int x, int y, int line, const int WIDTH_CONST, int* flag_drawn, int color) {
+    assert(flag_drawn != NULL && "ERROR wrong flag_drawn");
+
     if (y != line) {
         if (x == 0 && line == 0)
-            printf("\033[;37m" "+" "\033[0;0m");
+            printf(WHITE "+" RESET);
         else if (x == 0)
-            printf("\033[;37m" "|" "\033[0;0m");
+            printf(WHITE "|" RESET);
         else if (line == 0)
-            printf((x == WIDTH_CONST) ? "\n" : "\033[;37m" "—" "\033[0;0m");
+            printf((x == WIDTH_CONST) ? "\n" : WHITE "—" RESET);
         else
             printf((x == WIDTH_CONST) ? "\n" : " ");
     }
     else{
-        printf("\033[;3%dm" "*" "\033[0;0m", color);
+        printf("\033[;3%dm" "*" RESET, color);
         *flag_drawn = 1;
     }
 }

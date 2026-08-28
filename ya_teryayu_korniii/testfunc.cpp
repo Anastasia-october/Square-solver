@@ -1,11 +1,102 @@
 #include "testfunc.h"
 #include "main.h"
 
-int run_one_test(TestCase references, int i);
-int write_one_test_to_ref(const char* NAME_FILE_CONST);
-bool is_equal(double got, double ref);
+#define RANGE_LENGTH 100
+#define RANGE_MAXIMUM 50
+#define NUMBER_TESTS 20
+
+int run_one_test(TestCase references, int i);//TODO написать ручные тесты,
+int get_tests(TestCase* references, FILE* fp, char* test_mode);
+int get_generated_tests(TestCase* generated_ref);
+int generate_one_test(TestCase* references, int seed, int num_test);
+int get_manual_tests(FILE* fp, TestCase* references);
 void print_TestCase_struct(TestCase references);
-void get_tests(TestCase* references);
+bool is_equal(double got, double ref);
+
+//const char* name_file = "";
+
+int run_all_tests(char* name_file, char* test_mode) {
+    assert(name_file != NULL && "ERROR wrong name_file");
+    assert(test_mode != NULL && "ERROR wrong test_mode");
+
+    FILE* fp = fopen(name_file, "r");
+
+    int right_tests = 0, i = 0;
+
+    TestCase references[NUMBER_TESTS] = {};
+
+    int status_get_tests = get_tests(references, fp, test_mode);
+    assert(status_get_tests == 0 && "ERROR in get_tests function");
+
+    for (i = 0; i < NUMBER_TESTS; i ++){
+        int test = run_one_test(references[i], i);
+        right_tests += test;
+    }
+    fclose(fp);
+    return right_tests;
+}
+
+int get_tests(TestCase* references, FILE* fp, char* test_mode) {
+    assert(references != NULL && "ERROR wrong references");
+    assert(fp != NULL && "ERROR wrong fp");
+    assert(test_mode != NULL && "ERROR wrongtest_mode");
+
+    if (!(strcmp(test_mode, "auto"))) {
+        get_generated_tests(references);
+        return 0;
+    }
+    if (!(strcmp(test_mode, "manual"))) {
+        get_manual_tests(fp, references); // MENTOR проверка правильности с помощью return
+        return 0;
+    }
+    return 1;
+}
+
+int get_generated_tests(TestCase* references) {
+    assert(references != NULL && "ERROR wrong references");
+
+    srand((unsigned int)time(NULL));
+    int seed = rand()%(10);
+
+    for (int num_test = 0; num_test < NUMBER_TESTS; num_test++) {
+        seed += 1;
+        int func_state = generate_one_test(references, seed, num_test);
+
+        assert(func_state == 0 && "ERROR in generate_one_test, wrong fprintf\n");
+    }
+    return 0;
+}
+
+int generate_one_test(TestCase* references, int seed, int num_test) {
+    assert(references != NULL && "ERROR wrong references");
+
+    srand((unsigned int)seed); // MENTOR  type
+    double a = NAN, x1 = NAN, x2 = NAN;
+                                        //NOTE диапазон значений rand [-50, 50]
+    a = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
+    x1 = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
+    x2 = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
+
+    int number_of_roots = (is_equal(x1, x2)) ? 1 : 2;
+    double b = - a * (x1 + x2);
+    double c = a * x1 * x2;
+
+    references[num_test] = {.a = a, .b = b, .c = c,
+        .number_of_roots_ref = number_of_roots, .x1Ref = x1, .x2Ref = x2};
+    return 0;
+}
+
+int get_manual_tests(FILE* fp, TestCase* references) {
+    assert(fp != NULL && "ERROR wrong fp");
+    assert(references != NULL && "ERROR wrong references");
+
+    for (int num_test = 0; num_test < NUMBER_TESTS; num_test++){
+        fscanf(fp, "%lg %lg %lg %d %lg %lg", &references[num_test].a, &references[num_test].b,
+            &references[num_test].c, &references[num_test].number_of_roots_ref,
+            &references[num_test].x1Ref, &references[num_test].x2Ref);
+    }
+    return 0;
+}
 
 int run_one_test(TestCase references, int i) {
     double x1 = NAN, x2 = NAN;
@@ -38,21 +129,6 @@ int run_one_test(TestCase references, int i) {
     return 1;
 }
 
-int run_all_tests(void) {
-    int right_tests = 0, i = 0;
-
-    TestCase references[ITERATIONS] = {};
-
-    get_tests(references);
-
-    for (i = 0; i < ITERATIONS; i ++){
-        int test = run_one_test(references[i], i);
-        right_tests += test;
-    }
-
-    return right_tests;
-}
-
 bool is_equal(double got, double ref) {
     const double EPSILON_3_CONST = 0.001;
     return fabs(got - ref) < EPSILON_3_CONST;
@@ -62,45 +138,4 @@ void print_TestCase_struct(TestCase references) {
     printf("a = %lg b = %lg c = %lg number_of_roots_ref = %d x1Ref = %lg x2Ref = %lg\n",
             references.a, references.b, references.c, references.number_of_roots_ref,
             references.x1Ref, references.x2Ref);
-}
-
-int write_one_test_to_ref(const char* NAME_FILE_CONST) {
-
-    srand((unsigned int)(time(NULL)));//MENTOR смена типа,не меняющиеся значения
-    double a = NAN, x1 = NAN, x2 = NAN;
-                                        //NOTE диапазон значений rand [-50, 50]
-    a = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
-    x1 = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
-    x2 = ((double) rand() / (RAND_MAX+1.0)) * RANGE_LENGTH - RANGE_MAXIMUM;
-
-    int number_of_roots = (is_equal(x1, x2)) ? 1 : 2;
-    double b = - a * (x1 + x2);
-    double c = a * x1 * x2;
-
-    FILE* fp = fopen(NAME_FILE_CONST, "a");
-    int result_state = fprintf(fp, "%lg %lg %lg %d %lg %lg\n", a, b, c, number_of_roots, x1, x2);
-    fclose(fp);
-
-    if (result_state)
-        return 1;
-    else
-        return 0;
-}
-
- void get_tests(TestCase* references) {
-    const char* NAME_FILE_CONST = "references.txt";
-
-    for (int number_generated_tests = 0; number_generated_tests < ITERATIONS * 2; number_generated_tests++) {
-        int func_state = write_one_test_to_ref(NAME_FILE_CONST);
-
-        assert(func_state == 1 && "ERROR in write_one_test_to_ref, wrong fprintf\n");
-    }
-
-    FILE* fp = fopen(NAME_FILE_CONST, "r");
-    for (int j = 0; j < ITERATIONS; j++) {
-        fscanf(fp, "%lg %lg %lg %d %lg %lg",
-                &references[j].a, &references[j].b, &references[j].c, &references[j].number_of_roots_ref,
-                &references[j].x1Ref, &references[j].x2Ref);
-    }
-    fclose(fp);
 }

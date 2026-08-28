@@ -5,16 +5,21 @@
 #include "testfunc.h"
 #include "plot.h"
 
-int solve_linear_eq(double b, double c, double* x1, double* x2);
-int solve_square_eq(double a, double b, double c, double* x1, double* x2);
+#define COLOR_CHOOSE "\033[%d;3%dm"
+
+enum roots_flags solve_linear_eq(double b, double c, double* x1, double* x2);
+enum roots_flags solve_square_eq(double a, double b, double c, double* x1, double* x2);
 int read_coeffs(double* a, double* b, double* c);
-int greet_user();
+int greet_user(void);
 int get_sign(double number);
 void print_solutions(int count_ans, double* x1, double* x2, int font, int color);
-void get_color(int* font, int* color);
+void ask_color(int* font, int* color);
 
-int main() {
+int main(int argc, char* argv[]) {
+    assert(argv);
+
     double a = NAN, b = NAN, c = NAN;
+
     int font = 0, color = 0;
 
     while (greet_user()) {
@@ -25,22 +30,34 @@ int main() {
 
             count_ans = solve_equation(a, b, c, &x1, &x2);
 
-            get_color(&font, &color);
+            ask_color(&font, &color);
             print_solutions(count_ans, &x1, &x2, font, color);
             draw_function(a, b, c, color);
         }
     }
     printf("Testing process...\n");
-    int run_all_tests(void);
-    printf("Right tests: %d\n", run_all_tests());
+
+    char* name_file = NULL;
+    char* test_mode = NULL;
+
+    if (argc == 2) {//NOTE input name file references.txt and test_mode auto or manual
+        name_file = argv[1];
+        test_mode = argv[2];
+    }
+
+    assert(!strcmp(test_mode, "auto") || !strcmp(test_mode, "manual"));
+    int right_tests = run_all_tests(name_file, test_mode);
+    printf("Right tests: %d\n", right_tests);
 
     return 0;
 }
 
-int greet_user() {
-    printf("Hello, world! Do you want to solve a quadratic equation?(yes/no)\n");
+int greet_user(void) {
+    printf("Hello, world!/n"
+        "It is AI square solver :)\n"
+        "Do you want to solve a quadratic equation?(yes/no)\n");
 
-    const int ANSWER_SIZE_CONST = 6;
+    const int ANSWER_SIZE_CONST = 8;
     char greetanswer[ANSWER_SIZE_CONST] = "";
     const char* RIGHT_ANSWER_CONST = "yes";
     const char* WRONG_ANSWER_CONST = "no";
@@ -52,17 +69,18 @@ int greet_user() {
     if (strcmp(WRONG_ANSWER_CONST, greetanswer) == 0)
         return 0;
 
-    printf("Wrong input, try again\n");
+    printf("Wrong input! Try again\n");
     return greet_user();
 }
 
 int read_coeffs(double* a, double* b, double* c) {
-    assert(a != NULL && "ERROR: wrong a");
-    assert(b != NULL && "ERROR: wrong b");
-    assert(c != NULL && "ERROR: wrong c");
+    assert(a);
+    assert(b);
+    assert(c);
 
     printf("Enter the coefficients of the quadratic equation.\n");
     printf("ax^2+bx+c=0\n");
+    printf("a b c\n");
 
     scanf("%lf %lf %lf", a, b, c);
     char buf = 0;
@@ -78,36 +96,35 @@ int read_coeffs(double* a, double* b, double* c) {
     return 1;
 }
 
-int solve_equation(double a, double b, double c, double* x1, double* x2) {
-    assert(x2 != NULL && "ERROR: wrong x2");
-    assert(x1 != NULL && "ERROR: wrong x1");
-    if (get_sign(a) == 0) {
-        if (get_sign(b) == 0) {
-            if (get_sign(c) == 0)
-                return INFINITY_ROOTS;
-            else
-                return ZERO_ROOTS;
-        }
-        else
-            return solve_linear_eq(b, c, x1, x2);
-    }
+enum roots_flags solve_equation(double a, double b, double c, double* x1, double* x2) {
+    assert(x2);
+    assert(x1);
+
+    if (get_sign(a) == 0)
+        return solve_linear_eq(b, c, x1, x2);
     else
         return solve_square_eq(a, b, c, x1, x2);
 }
 
-int solve_linear_eq(double b, double c, double* x1, double* x2) {
-    assert(x2 != NULL && "ERROR: wrong x2");
-    assert(x1 != NULL && "ERROR: wrong x1");
-    assert(get_sign(b) != 0);
-
-    *x1 = *x2 = (-c)/b;
-
-    return ONE_ROOT;
+enum roots_flags solve_linear_eq(double b, double c, double* x1, double* x2) {
+    assert(x2);
+    assert(x1);
+    if (get_sign(b) == 0) {
+        if (get_sign(c) == 0)
+            return INFINITY_ROOTS;
+        else
+            return ZERO_ROOTS;
+    }
+    else {
+        *x1 = *x2 = (-c)/b;
+        return ONE_ROOT;
+    }
 }
 
-int solve_square_eq(double a, double b, double c, double* x1, double* x2) {
-    assert(x2 != NULL && "ERROR: wrong x2");
-    assert(x1 != NULL && "ERROR: wrong x1");
+enum roots_flags solve_square_eq(double a, double b, double c, double* x1, double* x2) {
+
+    assert(x2);
+    assert(x1);
     assert(get_sign(a) != 0);
 
     double d = b*b - 4*a*c;
@@ -115,12 +132,12 @@ int solve_square_eq(double a, double b, double c, double* x1, double* x2) {
     if (get_sign(d) == -1)
         return ZERO_ROOTS;
     else if (get_sign(d) == 0) {
-        *x1 = *x2 = (-b) / (2 * a);
+        *x1 = *x2 = (-b) / (2*a);
         return ONE_ROOT;
     }
     else {
-        *x1 = ((-b) + sqrt(d)) / (2 * a);
-        *x2 = ((-b) - sqrt(d)) / (2 * a);
+        *x1 = ((-b) + sqrt(d)) / (2*a);
+        *x2 = ((-b) - sqrt(d)) / (2*a);
         return TWO_ROOT;
     }
 
@@ -128,54 +145,52 @@ int solve_square_eq(double a, double b, double c, double* x1, double* x2) {
 }
 
 void print_solutions(int count_ans, double* x1, double* x2, int font, int color) {
-    assert(x2 != NULL && "ERROR: wrong x2");
-    assert(x1 != NULL && "ERROR: wrong x1");
+    assert(x2);
+    assert(x1);
 
-    switch (count_ans){
-    case 1:
+    switch (count_ans) {
+    case ONE_ROOT:
         printf("One root\n");
-        printf("\033[%d;3%dm" "%lg" "\033[0m" "\n", font, color, *x1); //NOTE цветной вывод
+        printf(COLOR_CHOOSE "%lg" RESET "\n", font, color, *x1); //NOTE цветной вывод
         break;
-    case 2:
+    case TWO_ROOT:
         printf("Two roots\n");
-        printf("\033[%d;3%dm" "%lg, %lg" "\033[0m" "\n", font, color, *x1, *x2); //NOTE цветной вывод
+        printf(COLOR_CHOOSE "%lg, %lg" RESET "\n", font, color, *x1, *x2); //NOTE цветной вывод
         break;
-    case 0:
-        printf("\033[%d;3%dm" "No roots" "\033[0m" "\n", font, color); //NOTE цветной вывод
+    case ZERO_ROOTS:
+        printf(COLOR_CHOOSE "No roots" RESET "\n", font, color); //NOTE цветной вывод
         break;
-    case 3:
-        printf("\033[%d;3%dm" "ERROR: an infinite number of roots" "\033[0" "\n", font, color); //NOTE цветной вывод
+    case INFINITY_ROOTS:
+        printf(COLOR_CHOOSE "ERROR: an infinite number of roots" RESET "\n", font, color); //NOTE цветной вывод
         break;
     default:
-        printf("\033[%d;3%dm" "ERROR: roots didnt read" "\033[0m" "\n", font, color); //NOTE цветной вывод
+        printf(COLOR_CHOOSE "ERROR: roots didnt read" RESET "\n", font, color); //NOTE цветной вывод
         break;
     }
 }
 
 int get_sign(double number) {
-    const double EPSILON_4_CONST = 0.00001; // TODO: 1e-5
+    const double EPSILON_5_CONST = 1e-5;
 
-    if (-EPSILON_4_CONST < number && number < EPSILON_4_CONST)
+    if (-EPSILON_5_CONST < number && number < EPSILON_5_CONST)
         return 0;
-    else if (number < -EPSILON_4_CONST)
+    else if (number < -EPSILON_5_CONST)
         return -1;
-    else if (number > EPSILON_4_CONST)
+    else if (number > EPSILON_5_CONST)
         return 1;
-    else {
-        printf("Wrong get_sign, take lower const\n");
-        return 0;
-    }
+
+    assert(0 && "Wrong get_sign, take lower const\n");
 }
 
-void get_color(int* font, int* color) {
-    assert(font != NULL && "ERROR: wrong font");
-    assert(color != NULL && "ERROR: wrong color");
+void ask_color(int* font, int* color) {
+    assert(font);
+    assert(color);
 
-    printf("What is your favourite font(shrift)?\n");
-    printf("0 - reset\n1 - bold text\n4 - emphasized(podch))\n7 - invers\n");
+    printf("What is your favorite font(shrift)?\n");
+    printf("0 - reset\n1 - bold text\n4 - emphasized(podch))\n7 - inversion\n");
     scanf("%d", font);
 
-    printf("What is your favourite color?\n");
+    printf("What is your favorite color?\n");
     printf("0 - black\t1 - red \t2 - green\n3 - yellow\t4 - blue\t5 - purple\n6 - light blue\t7 - white.\n");
 
     scanf("%d", color);
