@@ -4,9 +4,10 @@
     \details  График привязан к точке пересечения осей, оси координат рисуются белым цветом,
     график - цветом, выбранным пользователем.
  */
+#include <errno.h>
 #include "plot.h"
 
-#define COLOR_CHOOSE "\033[%d;3%dm"
+#define COLOR_CHOOSE "\033[0;3%dm"
 
 int calc_function(double a, double b, double c, int x);
 void print_symbol(int x, int right_line, int line, const int WIDTH_CONST, int* flag_drawn, int color);
@@ -40,10 +41,9 @@ void draw_function(double a, double b, double c, int color) {
     for(line = HEIGHT_CONST; line > -HEIGHT_CONST; line--) {
         for (x = -WIDTH_CONST; x <= WIDTH_CONST; x++) {
             y = calc_function(a, b, c, x);
-            if y != line
-                int right_line = 1;
-            else
-                int right_line = 0;
+            int right_line = 0;
+            if (y != line)
+                right_line = 1;
             print_symbol(x, right_line, line, WIDTH_CONST, &flag_drawn, color);
         }
     }

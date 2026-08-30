@@ -7,6 +7,7 @@
 
 
  */
+#include <errno.h>
 #include "testfunc.h"
 #include "main.h"
 
@@ -21,6 +22,7 @@ void generate_one_test(TestCase* references, int seed, int num_test);
 int get_manual_tests(FILE* fp, TestCase* references);
 void print_TestCase_struct(TestCase references);
 bool is_equal(double got, double ref);
+void error_monitor(void);
 
 //const char* name_file = "";
 
@@ -36,6 +38,7 @@ int run_all_tests(char* name_file, char* test_mode) {
     assert(test_mode != NULL && "ERROR wrong test_mode");
 
     FILE* fp = fopen(name_file, "r");
+    error_monitor();
 
     int right_tests = 0, i = 0;
 
@@ -82,7 +85,7 @@ int get_tests(TestCase* references, FILE* fp, char* test_mode) {
     \param[in] references Указатель на массив структур TestCase
  */
 int get_generated_tests(TestCase* references) {
-    assert(references != NULL && "ERROR wrong references");
+    assert(references != NULL);
 
     srand((unsigned int)time(NULL));
     int seed = rand()%(10);
@@ -133,6 +136,7 @@ int get_manual_tests(FILE* fp, TestCase* references) {
         fscanf(fp, "%lg %lg %lg %d %lg %lg", &references[num_test].a, &references[num_test].b,
             &references[num_test].c, &references[num_test].number_of_roots_ref,
             &references[num_test].x1Ref, &references[num_test].x2Ref);
+        error_monitor();
     }
     return 0;
 }
@@ -200,4 +204,9 @@ void print_TestCase_struct(TestCase references) {
     printf("a = %lg b = %lg c = %lg number_of_roots_ref = %d x1Ref = %lg x2Ref = %lg\n",
             references.a, references.b, references.c, references.number_of_roots_ref,
             references.x1Ref, references.x2Ref);
+}
+
+void error_monitor(void) {
+    if (errno)
+        perror("Failed: ");
 }

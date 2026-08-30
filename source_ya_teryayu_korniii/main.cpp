@@ -4,6 +4,7 @@
     \brief Main file
     call testfunc.cpp and plot.cpp
 */
+#include <errno.h>
 #include <string.h>
 #include <assert.h>
 #include <ctype.h>
@@ -20,12 +21,13 @@ int greet_user(void);
 int get_sign(double number);
 void print_solutions(int count_ans, double* x1, double* x2, int font, int color);
 void ask_color(int* font, int* color);
+void error_monitor(void);
 
 /**
     Принимает аргументы <имя_файла.txt> и режим тестирования (auto / manual)
     \param argv[] аргументы командной строки <имя_файла.txt> и режим тестирования (auto / manual)
  */
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) { //TODO errno where it possible
     assert(argv);
 
     double a = NAN, b = NAN, c = NAN;
@@ -77,6 +79,7 @@ int greet_user(void) {
     char greetanswer[ANSWER_SIZE_CONST] = "";
 
     scanf("%5s", greetanswer);  // NOTE: '5' is `ANSWER_SIZE_CONST`-1
+    error_monitor();
 
     if (strcmp("yes", greetanswer) == 0)
         return 1;
@@ -105,6 +108,7 @@ int read_coeffs(double* a, double* b, double* c) {
     printf("a b c\n");
 
     scanf("%lf %lf %lf", a, b, c);
+
     char buf = 0;///< буфер для проверки корректности ввода
 
     if ((buf = (char) getchar()) != '\n') {
@@ -258,9 +262,16 @@ void ask_color(int* font, int* color) {
     printf("What is your favorite font(shrift)?\n");
     printf("0 - reset\n1 - bold text\n4 - emphasized(podch))\n7 - inversion\n");
     scanf("%d", font);
+    error_monitor();
 
     printf("What is your favorite color?\n");
     printf("0 - black\t1 - red \t2 - green\n3 - yellow\t4 - blue\t5 - purple\n6 - light blue\t7 - white.\n");
 
     scanf("%d", color);
+    error_monitor();
+}
+
+void error_monitor(void) {
+    if (errno)
+        perror("Failed: ");
 }
