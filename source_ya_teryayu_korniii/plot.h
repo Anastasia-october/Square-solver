@@ -7,9 +7,6 @@
 #include <limits.h>
 #include "colors.h"
 
-#define RIGHT_EXIT 1
-#define WRONG_EXIT 0
-
-int draw_function(double a, double b, double c, int color);
+void draw_function(double a, double b, double c, int color);
 
 #endif

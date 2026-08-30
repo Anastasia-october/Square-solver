@@ -6,3 +6,12 @@ int main(void)
     const char* str = "ref";
     printf("%d\n", strcmp(str, "ref"));
 }
+
+
+enum season{
+    SUMMER,
+    AUTUMN
+}
+
+
+enum seasin a = SUMMER;
